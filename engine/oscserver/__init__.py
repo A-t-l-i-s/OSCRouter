@@ -20,7 +20,6 @@ class OSCServer(RFT_Object):
 		self.port = port
 
 		self.running = True
-		self.logging = False
 
 		self.clients = []
 		# ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,14 +37,6 @@ class OSCServer(RFT_Object):
 
 	# ~~~~~~~~~~~~ Server ~~~~~~~~~~~~
 	def run(self):
-		threading._start_new_thread(
-			self.run_,
-			(),
-			{}
-		)
-
-
-	def run_(self):
 		while self.running:
 			if (self.server == None):
 				try:
@@ -58,7 +49,13 @@ class OSCServer(RFT_Object):
 						self.dispatcher
 					)
 
+					# Log successful connection
+					RFT_Exception("Successfully connected!", 0).print()
+
 				except:
+					# Log failed connection
+					RFT_Exception("Failed to connect", 0).print()
+					
 					self.server = None
 
 				else:
@@ -77,6 +74,10 @@ class OSCServer(RFT_Object):
 				try:
 					# Handle server requests
 					self.server.handle_request()
+				
+				except KeyboardInterrupt:
+					break
+				
 				except:
 					...
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,13 +94,11 @@ class OSCServer(RFT_Object):
 		# Add client
 		self.clients.append(client)
 
+		# Log adding client
+		RFT_Exception(f"Client dispatching to {ip}:{port}", 0).print()
+
 
 	def default(self, address:str, *values):
-		if (self.logging):
-			# Logging
-			RFT_Exception(f"{address}: {values}").print()
-
-
 		for c in self.clients:
 			# Trigger client
 			c.trigger(

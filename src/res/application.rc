@@ -8,9 +8,9 @@ BEGIN
 		BEGIN
 			VALUE "FileVersion","1.0.0"
 			VALUE "ProductVersion","1.0.0"
-			VALUE "ProductName","ScreenCrop"
+			VALUE "ProductName","OSCRouter"
 			VALUE "LegalCopyright",""
-			VALUE "OriginalFilename","ScreenCrop.exe"
+			VALUE "OriginalFilename","OSCRouter.exe"
 			VALUE "FileDescription",""
 		END
 	END

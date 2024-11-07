@@ -4,11 +4,9 @@
 
 #include<wchar.h>
 #include<stdint.h>
+#include<unistd.h>
+#include<stdbool.h>
 #include<windows.h>
 
 #include<Python.h>
 
-
-
-const char* fileName = "OSCRouter.py";
-const char* programName = "OSCRouter";

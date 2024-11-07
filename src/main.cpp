@@ -4,24 +4,62 @@
 
 
 
-int main(int argC, const char* argV[]){
+int main(int argC, char* argV[]){
 	{
-		// Create new path
-		const wchar_t* binPath = L"./bin";
+		// Allocate vars
+		char exePath[MAX_PATH];
+		uint16_t exePathSize;
+		
+		// Get path
+		GetModuleFileName(NULL, exePath, MAX_PATH);
+		
+		// Get path size
+		exePathSize = strlen(exePath);
 
-		// Alocate new path
-		wchar_t binPath_[MAX_PATH];
+		// Initialize program path 
+		char programPath[exePathSize];
 
-		// Get absolute path
-		_wfullpath(
-			binPath_,
-			binPath,
-			MAX_PATH
-		);
+
+		char c;
+		bool found = false;
+
+		for (uint16_t i = 0; i < exePathSize; i++){
+			// Get exe path character
+			c = exePath[exePathSize - i - 1];
+
+			// Reset program path
+			programPath[i] = 0;
+
+			if (c == '/' || c == '\\'){
+				c = '\\';
+				found = true;
+			}
+
+			if (found){
+				programPath[exePathSize - i - 1] = c;
+			}
+		}
+
+
+		// Change to correct directory
+		chdir(programPath);
+
+
+		// Get binary directory and size
+		char* binPath = strcat(programPath, "bin");
+		uint16_t binPathSize = strlen(binPath);
+
+
+		// Allocate bin path wide char
+		wchar_t binPathW[binPathSize];
+
+		// Convert to wide character
+		mbstowcs(binPathW, binPath, binPathSize);
+		uint16_t binPathWSize = wcslen(binPathW);
 
 		// Add dll directory
 		AddDllDirectory(
-			binPath_
+			binPathW
 		);
 	}
 
@@ -43,6 +81,7 @@ int main(int argC, const char* argV[]){
 		config.use_environment = false;
 		config.utf8_mode = false;
 
+
 		// Pre initialize python
 		Py_PreInitialize(&config);
 	}
@@ -56,14 +95,24 @@ int main(int argC, const char* argV[]){
 		// Config
 		config.write_bytecode = false;
 		config.optimization_level = 0;
-		config.program_name = (wchar_t*)programName;
+		config.program_name = (wchar_t*)L"OSCRouter";
 		
-		config.home = NULL;
+		config.home = (wchar_t*)L".";
+		config.pythonpath_env = (wchar_t*)L".";
 		config.platlibdir = (wchar_t*)L"bin";
 		
+		config.safe_path = true;
+		config.parse_argv = false;
 		config.site_import = false;
 		config.buffered_stdio = false;
+		config.use_environment = false;
 		config.user_site_directory = false;
+
+		// Prefix
+		config.prefix = (wchar_t*)L".";
+
+		// Parse args to python
+		PyConfig_SetBytesArgv(&config, argC, argV);
 
 
 		// Logging
@@ -72,8 +121,8 @@ int main(int argC, const char* argV[]){
 
 
 		// Add module search paths
+		PyWideStringList_Append(&config.module_search_paths, L".");
 		PyWideStringList_Append(&config.module_search_paths, L"bin");
-		PyWideStringList_Append(&config.module_search_paths, L"lib");
 		PyWideStringList_Append(&config.module_search_paths, L"lib.zip");
 
 		// Prevent module paths from override
@@ -86,6 +135,9 @@ int main(int argC, const char* argV[]){
 
 
 	{
+		// File name constant
+		const char* fileName = "main.py";
+
 		// Create py string of filename
 		PyObject* filenameObj = Py_BuildValue("s", fileName);
 
